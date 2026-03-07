@@ -10,14 +10,58 @@
 // remove it before you submit. Just allows things to compile initially.
 #define UNUSED(x) (void)(x)
 
+/**
+ *Represents a block storage device containing data blocks and a bitmap for tracking free and used blocks
+ */
+struct block_store {
+	//2D array representing storage blocks
+	uint8_t data[BLOCK_STORE_NUM_BLOCKS][BLOCK_SIZE_BYTES]; //512 blocks, 32 bytes each
+	// Pointer to bitmap
+	bitmap_t *bitmap;
+
+};
+
+/**
+ * Allocates a new block storage device, initialize it to zero, set up Free Block Map
+ * using bitmap, and marks blocks used by blockmap as allocated
+ * Returns pointer to newly created block store, or NULL if error occurs
+ */
 block_store_t *block_store_create()
 {
-	return NULL;
+	// Allocate memory for block store struct
+	block_store_t *block_store = calloc(1, sizeof(block_store_t));
+	if(block_store == NULL){
+		// failure
+		return NULL;
+	}
+
+	// Create bitmap overlay at specified BITMAP_START_BLOCK
+	block_store->bitmap = bitmap_overlay(BITMAP_SIZE_BITS, block_store->data[BITMAP_START_BLOCK]);
+	if(block_store->bitmap == NULL){
+		// failure
+		free(block_store);
+		return NULL;
+	}
+
+	// Iterate through the blocks designated for bitmap
+	for(size_t i = BITMAP_START_BLOCK; i < BITMAP_START_BLOCK + BITMAP_NUM_BLOCKS; i++){
+		block_store_request(block_store, i);
+	}
+
+	// Return initialized block store pointer
+	return block_store;
 }
 
+/*
+ * Frees all memory allocated to the given block store (bs)
+ */
 void block_store_destroy(block_store_t *const bs)
 {
-	UNUSED(bs);
+	// checks if bs is null, if null, does nothing, otherwise frees memory
+	if(bs){
+		free(bs->bitmap);
+		free(bs);
+	}
 }
 
 size_t block_store_allocate(block_store_t *const bs)
