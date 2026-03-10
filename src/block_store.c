@@ -11,6 +11,16 @@
 #define UNUSED(x) (void)(x)
 
 /**
+<<<<<<< HEAD
+ *Represents a block storage device containing data blocks and a bitmap for tracking free and used blocks
+ */
+struct block_store {
+	//2D array representing storage blocks
+	uint8_t data[BLOCK_STORE_NUM_BLOCKS][BLOCK_SIZE_BYTES]; //512 blocks, 32 bytes each
+	// Pointer to bitmap
+	bitmap_t *bitmap;
+
+=======
  * Represents a block storage device containing data blocks and a bitmap for tracking free and used blocks
  */
 struct block_store {
@@ -18,6 +28,7 @@ struct block_store {
 	uint8_t data[BLOCK_STORE_NUM_BLOCKS][BLOCK_SIZE_BYTES]; // 512 blocks, 32 bytes each
 	// Pointer to bitmap
 	bitmap_t *bitmap;
+>>>>>>> fb0b17149625498de98ac8259d1173e6c95b3e81
 };
 
 /**
@@ -29,33 +40,55 @@ block_store_t *block_store_create()
 {
 	// Allocate memory for block store struct
 	block_store_t *block_store = calloc(1, sizeof(block_store_t));
+<<<<<<< HEAD
+	if(block_store == NULL){
+=======
 	if (block_store == NULL) {
+>>>>>>> fb0b17149625498de98ac8259d1173e6c95b3e81
 		// failure
 		return NULL;
 	}
 
 	// Create bitmap overlay at specified BITMAP_START_BLOCK
 	block_store->bitmap = bitmap_overlay(BITMAP_SIZE_BITS, block_store->data[BITMAP_START_BLOCK]);
+<<<<<<< HEAD
+	if(block_store->bitmap == NULL){
+=======
 	if (block_store->bitmap == NULL) {
+>>>>>>> fb0b17149625498de98ac8259d1173e6c95b3e81
 		// failure
 		free(block_store);
 		return NULL;
 	}
 
 	// Iterate through the blocks designated for bitmap
+<<<<<<< HEAD
+	for(size_t i = BITMAP_START_BLOCK; i < BITMAP_START_BLOCK + BITMAP_NUM_BLOCKS; i++){
+=======
 	for (size_t i = BITMAP_START_BLOCK; i < BITMAP_START_BLOCK + BITMAP_NUM_BLOCKS; i++) {
 		// Mark bitmap blocks as allocated
+>>>>>>> fb0b17149625498de98ac8259d1173e6c95b3e81
 		block_store_request(block_store, i);
 	}
 
 	// Return initialized block store pointer
 	return block_store;
+<<<<<<< HEAD
+=======
 
+>>>>>>> fb0b17149625498de98ac8259d1173e6c95b3e81
 }
 
+/*
+ * Frees all memory allocated to the given block store (bs)
+ */
 void block_store_destroy(block_store_t *const bs)
 {
-	UNUSED(bs);
+	// checks if bs is null, if null, does nothing, otherwise frees memory
+	if(bs){
+		free(bs->bitmap);
+		free(bs);
+	}
 }
 
 /**
