@@ -91,12 +91,29 @@ size_t block_store_allocate(block_store_t *const bs)
 
 }
 
+/**
+ * Checks to see if a given bit is available
+ * if not, then returns false, if so, flips the bit and returns true
+ */
 bool block_store_request(block_store_t *const bs, const size_t block_id)
 {
-	UNUSED(bs);
-	UNUSED(block_id);
-	return false;
+        //checks to see if all parameters are valid
+        if(bs == NULL || bs->bitmap == NULL || block_id >= BLOCK_STORE_NUM_BLOCKS){
+                return false;
+        }
+
+        //gets the bit that represents the block
+        size_t availability = bitmap_test(bs->bitmap, block_id);
+
+        //checks to see if block is already taken (0 if no, 1 if yes)
+        if(availability == 0){
+                bitmap_flip(bs->bitmap, block_id);
+                return true;
+        }
+
+        return false;
 }
+
 
 void block_store_release(block_store_t *const bs, const size_t block_id)
 {
