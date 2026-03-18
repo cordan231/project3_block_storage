@@ -11,14 +11,13 @@
 #define UNUSED(x) (void)(x)
 
 /**
- *Represents a block storage device containing data blocks and a bitmap for tracking free and used blocks
+ * Represents a block storage device containing data blocks and a bitmap for tracking free and used blocks
  */
 struct block_store {
-	//2D array representing storage blocks
-	uint8_t data[BLOCK_STORE_NUM_BLOCKS][BLOCK_SIZE_BYTES]; //512 blocks, 32 bytes each
+	// 2D array representing storage blocks
+	uint8_t data[BLOCK_STORE_NUM_BLOCKS][BLOCK_SIZE_BYTES]; // 512 blocks, 32 bytes each
 	// Pointer to bitmap
 	bitmap_t *bitmap;
-
 };
 
 /**
@@ -37,14 +36,15 @@ block_store_t *block_store_create()
 
 	// Create bitmap overlay at specified BITMAP_START_BLOCK
 	block_store->bitmap = bitmap_overlay(BITMAP_SIZE_BITS, block_store->data[BITMAP_START_BLOCK]);
-	if(block_store->bitmap == NULL){
+	if (block_store->bitmap == NULL) {
 		// failure
 		free(block_store);
 		return NULL;
 	}
 
 	// Iterate through the blocks designated for bitmap
-	for(size_t i = BITMAP_START_BLOCK; i < BITMAP_START_BLOCK + BITMAP_NUM_BLOCKS; i++){
+	for (size_t i = BITMAP_START_BLOCK; i < BITMAP_START_BLOCK + BITMAP_NUM_BLOCKS; i++) {
+		// Mark bitmap blocks as allocated
 		block_store_request(block_store, i);
 	}
 
@@ -64,10 +64,31 @@ void block_store_destroy(block_store_t *const bs)
 	}
 }
 
+/**
+ * Searches for first available free block in storage
+ * If free block is found, it marks the block as in use within bitmap and returns block's ID
+ * Returns SIZE_MAX if block store is full, no free blocks are found, or if invalid pointer is found
+ */
 size_t block_store_allocate(block_store_t *const bs)
 {
-	UNUSED(bs);
-	return 0;
+	// Verify that the input pointer is not NULL
+	if (bs == NULL) return SIZE_MAX;
+
+	// Find index of the first free block in bitmap
+	size_t free_block_id = bitmap_ffz(bs->bitmap);
+
+	// Verify it found free block
+	if (free_block_id == SIZE_MAX || free_block_id >= BLOCK_STORE_NUM_BLOCKS) return SIZE_MAX;
+
+	// Request and mark free block as allocated
+	bool success = block_store_request(bs, free_block_id);
+
+	// If unsuccessful, return SIZE_MAX
+	if (!success) return SIZE_MAX;
+
+	// Return ID of allocated block
+	return free_block_id;
+
 }
 
 bool block_store_request(block_store_t *const bs, const size_t block_id)
