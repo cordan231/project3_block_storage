@@ -149,11 +149,30 @@ size_t block_store_get_used_blocks(const block_store_t *const bs)
 
 }
 
-
+/**
+ * Counts all of the blocks that are currently listed as free
+ * Returns SIZE_MAX if invalid pointer is found
+ * Returns number of free blocks otherwise
+ */
 size_t block_store_get_free_blocks(const block_store_t *const bs)
 {
-	UNUSED(bs);
-	return 0;
+	// input check
+	if (bs == NULL || bs->bitmap == NULL) {
+		return SIZE_MAX;
+	}
+
+	// current count of used blocks
+	size_t used_count = block_store_get_used_blocks(bs);
+
+	// check if used count failed
+	if (used_count == SIZE_MAX) {
+		return SIZE_MAX;
+	}
+
+	// free blocks is total blocks minus used blocks
+	size_t free_count = BLOCK_STORE_NUM_BLOCKS - used_count;
+
+	return free_count;
 }
 
 size_t block_store_get_total_blocks()
