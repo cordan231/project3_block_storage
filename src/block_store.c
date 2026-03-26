@@ -125,11 +125,30 @@ void block_store_release(block_store_t *const bs, const size_t block_id)
 	bitmap_reset(bs->bitmap, block_id);
 }
 
+/*
+* counts all of the blocks that are currently listed as used
+*/
 size_t block_store_get_used_blocks(const block_store_t *const bs)
 {
-	UNUSED(bs);
-	return 0;
+        //checks if input is valid
+        if(bs == NULL || bs->bitmap == NULL){
+                return SIZE_MAX;
+        }
+
+        //counter for used blocks
+        size_t used_count = 0;
+
+        //iterates through all bits in bitmap, testing them
+        for(size_t i = 0; i < BLOCK_STORE_NUM_BLOCKS; i++){
+                if(bitmap_test(bs->bitmap, i) == 1){
+                        used_count++;
+                }
+        }
+
+        return used_count;
+
 }
+
 
 size_t block_store_get_free_blocks(const block_store_t *const bs)
 {
