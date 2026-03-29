@@ -115,39 +115,96 @@ bool block_store_request(block_store_t *const bs, const size_t block_id)
 }
 
 
+/*
+ * Frees the specified block by clearing its bit in the bitmap
+ */
 void block_store_release(block_store_t *const bs, const size_t block_id)
 {
+	//checks if all parameters are valid
 	if (bs == NULL || bs->bitmap == NULL || block_id >= BLOCK_STORE_NUM_BLOCKS) {
 		return;
 	}
- 
-	// Clear the bit to mark the block as free
+
+	//clears the bit to mark the block as free
 	bitmap_reset(bs->bitmap, block_id);
 }
 
+/*
+* counts all of the blocks that are currently listed as used
+*/
 size_t block_store_get_used_blocks(const block_store_t *const bs)
 {
-	UNUSED(bs);
-	return 0;
+        //checks if input is valid
+        if(bs == NULL || bs->bitmap == NULL){
+                return SIZE_MAX;
+        }
+
+        //counter for used blocks
+        size_t used_count = 0;
+
+        //iterates through all bits in bitmap, testing them
+        for(size_t i = 0; i < BLOCK_STORE_NUM_BLOCKS; i++){
+                if(bitmap_test(bs->bitmap, i) == 1){
+                        used_count++;
+                }
+        }
+
+        return used_count;
+
 }
 
+/**
+ * Counts all of the blocks that are currently listed as free
+ * Returns SIZE_MAX if invalid pointer is found
+ * Returns number of free blocks otherwise
+ */
 size_t block_store_get_free_blocks(const block_store_t *const bs)
 {
-	UNUSED(bs);
-	return 0;
+	// input check
+	if (bs == NULL || bs->bitmap == NULL) {
+		return SIZE_MAX;
+	}
+
+	// current count of used blocks
+	size_t used_count = block_store_get_used_blocks(bs);
+
+	// check if used count failed
+	if (used_count == SIZE_MAX) {
+		return SIZE_MAX;
+	}
+
+	// free blocks is total blocks minus used blocks
+	size_t free_count = BLOCK_STORE_NUM_BLOCKS - used_count;
+
+	return free_count;
 }
 
+/*
+ * Returns the total number of blocks in the block store
+ */
 size_t block_store_get_total_blocks()
 {
+	//total blocks is a constant, no object needed
 	return BLOCK_STORE_NUM_BLOCKS;
 }
 
+/**
+ * Reads data from the specified block and writes it to the designated buffer
+ * Returns 0 if invalid pointer is found or block_id is out of range
+ * Returns number of bytes read otherwise
+ */
 size_t block_store_read(const block_store_t *const bs, const size_t block_id, void *buffer)
 {
-	UNUSED(bs);
-	UNUSED(block_id);
-	UNUSED(buffer);
-	return 0;
+	//checks if all parameters are valid
+	if (bs == NULL || buffer == NULL || block_id >= BLOCK_STORE_NUM_BLOCKS) {
+		return 0;
+	}
+
+	//copies data from the specified block into the buffer
+	memcpy(buffer, bs->data[block_id], BLOCK_SIZE_BYTES);
+
+	//return number of bytes read
+	return BLOCK_SIZE_BYTES;
 }
 
 size_t block_store_write(block_store_t *const bs, const size_t block_id, const void *buffer)
