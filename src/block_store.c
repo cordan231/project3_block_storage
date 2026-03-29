@@ -4,6 +4,7 @@
 #include "bitmap.h"
 #include "block_store.h"
 // include more if you need
+#include <string.h>
 
 
 // You might find this handy. I put it around unused parameters, but you should
