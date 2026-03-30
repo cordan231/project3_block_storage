@@ -4,6 +4,7 @@
 #include "bitmap.h"
 #include "block_store.h"
 // include more if you need
+#include <string.h>
 
 
 // You might find this handy. I put it around unused parameters, but you should
@@ -115,13 +116,17 @@ bool block_store_request(block_store_t *const bs, const size_t block_id)
 }
 
 
+/*
+ * Frees the specified block by clearing its bit in the bitmap
+ */
 void block_store_release(block_store_t *const bs, const size_t block_id)
 {
+	//checks if all parameters are valid
 	if (bs == NULL || bs->bitmap == NULL || block_id >= BLOCK_STORE_NUM_BLOCKS) {
 		return;
 	}
- 
-	// Clear the bit to mark the block as free
+
+	//clears the bit to mark the block as free
 	bitmap_reset(bs->bitmap, block_id);
 }
 
@@ -175,17 +180,32 @@ size_t block_store_get_free_blocks(const block_store_t *const bs)
 	return free_count;
 }
 
+/*
+ * Returns the total number of blocks in the block store
+ */
 size_t block_store_get_total_blocks()
 {
+	//total blocks is a constant, no object needed
 	return BLOCK_STORE_NUM_BLOCKS;
 }
 
+/**
+ * Reads data from the specified block and writes it to the designated buffer
+ * Returns 0 if invalid pointer is found or block_id is out of range
+ * Returns number of bytes read otherwise
+ */
 size_t block_store_read(const block_store_t *const bs, const size_t block_id, void *buffer)
 {
-	UNUSED(bs);
-	UNUSED(block_id);
-	UNUSED(buffer);
-	return 0;
+	//checks if all parameters are valid
+	if (bs == NULL || buffer == NULL || block_id >= BLOCK_STORE_NUM_BLOCKS) {
+		return 0;
+	}
+
+	//copies data from the specified block into the buffer
+	memcpy(buffer, bs->data[block_id], BLOCK_SIZE_BYTES);
+
+	//return number of bytes read
+	return BLOCK_SIZE_BYTES;
 }
 
 size_t block_store_write(block_store_t *const bs, const size_t block_id, const void *buffer)
