@@ -5,6 +5,7 @@
 #include "block_store.h"
 // include more if you need
 #include <string.h>
+#include "sys/stat.h"
 
 
 // You might find this handy. I put it around unused parameters, but you should
@@ -233,9 +234,35 @@ block_store_t *block_store_deserialize(const char *const filename)
 	return NULL;
 }
 
+/*
+ * Writes all of the BS device to file
+ */
 size_t block_store_serialize(const block_store_t *const bs, const char *const filename)
 {
-	UNUSED(bs);
-	UNUSED(filename);
-	return 0;
+        //checks parameters
+        if(bs == NULL || bs->data == NULL || filename == NULL){
+                return 0;
+        }
+
+        FILE *fptr = fopen(filename, "wb");
+
+        //check for failure
+        if(fptr == NULL){
+                fclose(fptr);
+                return 0;
+        }
+
+        //writes to file, then closes fptr
+        fwrite(bs, BLOCK_SIZE_BYTES, BLOCK_STORE_NUM_BLOCKS, fptr);
+        fclose(fptr);
+
+        //creates a stat file to read the size of the file just written to
+        //so that the actual filesize can be returned
+        struct stat st;
+        stat(filename, &st);
+
+        //returns the total number of bytes written
+        return st.st_size;
+
+
 }
