@@ -252,9 +252,6 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
                 return 0;
         }
 
-        //the total number of bytes that will be written
-        size_t num_bytes_written = BLOCK_STORE_NUM_BYTES;
-
         //writes to file, then closes fptr
         fwrite(bs, BLOCK_SIZE_BYTES, BLOCK_STORE_NUM_BLOCKS, fptr);
         fclose(fptr);
