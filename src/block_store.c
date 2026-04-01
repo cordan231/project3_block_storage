@@ -208,12 +208,23 @@ size_t block_store_read(const block_store_t *const bs, const size_t block_id, vo
 	return BLOCK_SIZE_BYTES;
 }
 
+/*
+ * Writes data from the designated buffer to the specified block
+ * Returns 0 if invalid pointer is found or block_id is out of range
+ * Returns number of bytes written otherwise
+ */
 size_t block_store_write(block_store_t *const bs, const size_t block_id, const void *buffer)
 {
-	UNUSED(bs);
-	UNUSED(block_id);
-	UNUSED(buffer);
-	return 0;
+	// checks if all parameters are valid
+	if (bs == NULL || buffer == NULL || block_id >= BLOCK_STORE_NUM_BLOCKS) {
+		return 0;
+	}
+
+	//copies data from the buffer into the specified block
+	memcpy(bs->data[block_id], buffer, BLOCK_SIZE_BYTES);
+
+	//return number of bytes written
+	return BLOCK_SIZE_BYTES;
 }
 
 block_store_t *block_store_deserialize(const char *const filename)
