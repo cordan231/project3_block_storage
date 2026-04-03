@@ -230,12 +230,49 @@ size_t block_store_write(block_store_t *const bs, const size_t block_id, const v
 
 block_store_t *block_store_deserialize(const char *const filename)
 {
-	UNUSED(filename);
-	return NULL;
+
+    // check for null filename
+    if (filename == NULL) {
+        return NULL;
+    }
+
+    // open file for reading in binary mode
+    FILE *file = fopen(filename, "rb");
+    if (file == NULL) {
+        return NULL;
+    }
+
+    // allocate a new block store
+    block_store_t *bs = calloc(1, sizeof(block_store_t));
+    if (bs == NULL) {
+        fclose(file);
+        return NULL;
+    }
+
+    // read the entire data array from file
+    size_t bytes_read = fread(bs->data, 1, BLOCK_STORE_NUM_BYTES, file);
+    fclose(file);
+
+    // verify we read the correct number of bytes
+    if (bytes_read != BLOCK_STORE_NUM_BYTES) {
+        free(bs);
+        return NULL;
+    }
+
+    // re-attach bitmap overlay to the bitmap block in the data array
+    bs->bitmap = bitmap_overlay(BITMAP_SIZE_BITS, bs->data[BITMAP_START_BLOCK]);
+    if (bs->bitmap == NULL) {
+        free(bs);
+        return NULL;
+    }
+
+    return bs;
+
+
 }
 
 /*
- * Writes all of the BS device to file
+ * Writes all of the BS device to file, returns number of bytes written if succeed, 0 if failed
  */
 size_t block_store_serialize(const block_store_t *const bs, const char *const filename)
 {
@@ -251,9 +288,6 @@ size_t block_store_serialize(const block_store_t *const bs, const char *const fi
                 fclose(fptr);
                 return 0;
         }
-
-        //the total number of bytes that will be written
-        size_t num_bytes_written = BLOCK_STORE_NUM_BYTES;
 
         //writes to file, then closes fptr
         fwrite(bs, BLOCK_SIZE_BYTES, BLOCK_STORE_NUM_BLOCKS, fptr);
